@@ -12,40 +12,41 @@ import {
   Alert,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { Download, Refresh } from '@mui/icons-material';
+import { Download, OpenInNew } from '@mui/icons-material';
+import Confetti from "react-confetti";
 
+// Styled components
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
-  background: 'white',
+  background: 'rgba(255, 255, 255, 0.9)',
   borderRadius: theme.spacing(2),
-  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+  boxShadow: '0 6px 16px rgba(0, 0, 0, 0.2)',
   transition: 'transform 0.3s ease-in-out',
   '&:hover': {
-    transform: 'translateY(-5px)',
+    transform: 'translateY(-3px)',
   },
 }));
 
 const StyledButton = styled(Button)(({ theme }) => ({
   padding: theme.spacing(1.5, 4),
   borderRadius: theme.spacing(2),
-  backgroundColor: '#2ecc71',
-  color: 'white',
   transition: 'all 0.3s ease-in-out',
+  fontWeight: 600,
   '&:hover': {
-    backgroundColor: '#27ae60',
-    boxShadow: '0 6px 15px rgba(0, 255, 0, 0.2)',
-  },
-  '&:disabled': {
-    backgroundColor: '#bdc3c7',
+    transform: 'scale(1.05)',
+    boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)',
   },
 }));
 
 const App = () => {
   const backendUrl = "https://kchis-backend.onrender.com"; // Replace with your backend URL
+  const [confetti, setConfetti] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [errorOpen, setErrorOpen] = useState(false);
 
   const downloadExcel = async () => {
+    setLoading(true);
     try {
       const response = await fetch(`${backendUrl}/download`);
       if (!response.ok) {
@@ -53,27 +54,25 @@ const App = () => {
         setMessage(errorData.error || "Възникна неизвестна грешка.");
         setErrorOpen(true);
       } else {
-        // Process the response as a blob
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
-  
-        // Create a temporary download link
         const a = document.createElement("a");
         a.href = url;
-        a.download = "kchis-data.xlsx"; // Set the downloaded file name
-        document.body.appendChild(a); // Append to the document
-        a.click(); // Trigger the download
-        a.remove(); // Remove the link after triggering
-  
+        a.download = "properties.xlsx";
+        a.click();
+        window.URL.revokeObjectURL(url);
+
         setMessage("Изтеглянето започна успешно!");
-        setErrorOpen(true);
+        setConfetti(true); // Trigger confetti
+        setTimeout(() => setConfetti(false), 5000); // Stop confetti after 5 seconds
       }
     } catch (error) {
       setMessage("Възникна грешка при изтеглянето. Моля, опитайте отново.");
       setErrorOpen(true);
+    } finally {
+      setLoading(false);
     }
   };
-  
 
   const handleError = (errorMessage) => {
     setMessage(errorMessage);
@@ -91,7 +90,7 @@ const App = () => {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#f8f9fa',
+        background: 'linear-gradient(135deg, #f6f8fc, #e9efff)',
         padding: '24px',
       }}
     >
@@ -109,7 +108,7 @@ const App = () => {
                     mb: 4,
                   }}
                 >
-                  КЧИС Екстрактор
+                  Данни за Сделки в КЧИС
                 </Typography>
               </Grow>
 
@@ -125,7 +124,7 @@ const App = () => {
                     mb: 4,
                   }}
                 >
-                  Този инструмент извлича данни за сделки ежедневно () и ви позволява да експортирате данните като Excel файл. Използвайте бутона по-долу, за да изтеглите последния файл.
+                  Excel файлът се актуализира ежедневно. Ако искате най-актуалните данни, винаги можете да го изтеглите, като натиснете бутона по-долу.
                 </Typography>
               </Fade>
 
@@ -133,7 +132,7 @@ const App = () => {
                 mt={4} 
                 sx={{
                   display: 'flex',
-                  gap: 3,
+                  gap: 2,
                   justifyContent: 'center',
                   flexWrap: 'wrap',
                 }}
@@ -142,14 +141,41 @@ const App = () => {
                   variant="contained"
                   onClick={downloadExcel}
                   startIcon={<Download />}
+                  sx={{
+                    backgroundColor: '#2196f3',
+                    color: 'white',
+                  }}
+                  disabled={loading}
                 >
-                  Изтегли Excel
+                  {loading ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CircularProgress size={24} color="inherit" />
+                      Изтегляне...
+                    </Box>
+                  ) : (
+                    "Изтегли Excel"
+                  )}
+                </StyledButton>
+
+                <StyledButton
+                  variant="outlined"
+                  startIcon={<OpenInNew />}
+                  onClick={() => window.open("https://real-kchis-website.com", "_blank")}
+                  sx={{
+                    borderColor: '#f50057',
+                    color: '#f50057',
+                  }}
+                >
+                  Посетете реалния сайт на КЧИС
                 </StyledButton>
               </Box>
             </Box>
           </StyledPaper>
         </Container>
       </Fade>
+
+      {/* Confetti Effect */}
+      {confetti && <Confetti width={window.innerWidth} height={window.innerHeight} />}
 
       {/* Snackbar for feedback */}
       <Snackbar 
