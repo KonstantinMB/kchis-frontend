@@ -160,7 +160,7 @@ const App = () => {
                 <StyledButton
                   variant="outlined"
                   startIcon={<OpenInNew />}
-                  onClick={() => window.open("https://real-kchis-website.com", "_blank")}
+                  onClick={() => window.open("https://sales.bcpea.org/properties", "_blank")}
                   sx={{
                     borderColor: '#f50057',
                     color: '#f50057',
